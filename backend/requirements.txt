@@ -1,0 +1,14 @@
+uvicorn
+fastapi
+pydantic
+redis
+psycopg2-binary
+alembic
+sqlalchemy
+
+#requests
+#jinja2
+#pytest
+#websockets
+#python-telegram-bot
+#lxml

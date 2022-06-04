@@ -1,0 +1,66 @@
+version: "3.3"
+services:
+#
+#  proxy:
+#    image: nginx
+#    depends_on:
+#      - backend
+#      - frontend
+#    volumes:
+#      - .:/code
+#      - ./nginx:/etc/nginx/conf.d
+#      - /var/run/docker.sock:/var/run/docker.sock
+#    ports:
+#      - 80:80
+#      - 8090:8080
+
+  db:
+    image: postgres:13.1
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_SERVER=db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mypass
+      - POSTGRES_DB=app
+
+  redis:
+    image: redis:latest
+    volumes:
+      - redis_data:/data
+
+  backend:
+    image: mybackend:0.1
+    depends_on:
+      - db
+      - redis
+    environment:
+      - SERVER_NAME=localhost
+      - SERVER_HOST=http://localhost
+      - BACKEND_ENV=dev
+      - PYTHONUNBUFFERED=1
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/app:/app
+      - ./frontend/dist:/app/fe-dist
+    command: uvicorn --reload --host 0.0.0.0 --port 8000 --log-level info --proxy-headers --forwarded-allow-ips '*' "main:app"
+
+#  frontend:
+#    image: myfrontend:0.1
+#    build:
+#      context: ./frontend
+#      dockerfile: Dockerfile
+#      args:
+#        FRONTEND_ENV: dev
+#    command: npm run serve
+#    # for localbuild
+#    volumes:
+#      - ./frontend:/app
+
+volumes:
+  postgres_data: {}
+  redis_data: {}
