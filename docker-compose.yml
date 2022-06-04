@@ -49,17 +49,18 @@ services:
       - ./frontend/dist:/app/fe-dist
     command: uvicorn --reload --host 0.0.0.0 --port 8000 --log-level info --proxy-headers --forwarded-allow-ips '*' "main:app"
 
-#  frontend:
-#    image: myfrontend:0.1
-#    build:
-#      context: ./frontend
-#      dockerfile: Dockerfile
-#      args:
-#        FRONTEND_ENV: dev
-#    command: npm run serve
-#    # for localbuild
-#    volumes:
-#      - ./frontend:/app
+  frontend:
+    image: myfrontend:0.1
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        FRONTEND_ENV: dev
+    ports:
+      - "3000:3000"
+    command: npm start
+    volumes:
+      - ./frontend:/app
 
 volumes:
   postgres_data: {}
