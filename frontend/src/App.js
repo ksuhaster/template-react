@@ -1,23 +1,43 @@
-import logo from './logo.svg';
 import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="col-lg-6 mx-auto p-3 py-md-5">
+      <form>
+        <div className="mb-3">
+          <label htmlFor="exampleFormControlInput1" className="form-label">Email
+            address</label>
+          <input type="email" className="form-control" id="exampleFormControlInput1"
+                 placeholder="name@example.com" />
+        </div>
+        <div className="mb-3">
+          <label htmlFor="exampleFormControlTextarea1" className="form-label">Example
+            textarea</label>
+          <textarea className="form-control" id="exampleFormControlTextarea1"
+                    rows="3"></textarea>
+        </div>
+      </form>
+
+      asd <i className="bi bi-backspace-fill"></i> asd
+
+      <table className={'table table-striped table-hover'}>
+        <thead>
+          <tr>
+            <th>asd</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>asd</td>
+          </tr>
+          <tr>
+            <td>asd</td>
+          </tr>
+          <tr>
+            <td>asd</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }
