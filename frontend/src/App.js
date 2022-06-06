@@ -4,10 +4,10 @@ import { useState } from "react";
 
 function App() {
 
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [items, setItems] = useState("");
-  const [message, setMessage] = useState("");
+  const [title, setTitle] = useState();
+  const [description, setDescription] = useState();
+  const [items, setItems] = useState();
+  const [message, setMessage] = useState();
 
   let handleSubmit = async (e) => {
     e.preventDefault();
@@ -16,7 +16,6 @@ function App() {
         title: title,
         description: description,
       });
-      console.log('body', body);
       let res = await fetch("http://localhost:8000/api/item", {
         method: "POST",
         headers: {
@@ -38,6 +37,12 @@ function App() {
     }
   };
 
+  // let handleReset = () => {
+  //   setTitle("ss");
+  //   setDescription("zz");
+  //   setMessage("dd");
+  // }
+  //
   return (
     <div className="col-lg-6 mx-auto p-3 py-md-5">
 
@@ -61,6 +66,8 @@ function App() {
 
         {message ? <div className="alert alert-info my-3">{message}</div> : null}
       </form>
+
+      {/*<input type="button" onClick={handleReset} value="Reset" />*/}
 
       <Listing />
 

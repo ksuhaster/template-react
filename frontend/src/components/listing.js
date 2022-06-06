@@ -10,7 +10,7 @@ class Listing extends Component {
     }
   }
 
-  componentDidMount() {
+  updateItems() {
     fetch('http://localhost:8000/api/items/')
       .then(response => response.json())
       .then(items => {
@@ -21,6 +21,21 @@ class Listing extends Component {
       .catch(error => console.log(error))
   }
 
+  componentDidMount() {
+    this.updateItems();
+  }
+
+  deleteItem(id) {
+    return () => {
+      fetch(`http://localhost:8000/api/items/${id}`, {
+        method: 'DELETE'
+      })
+        .then(this.updateItems())
+        .then(this.render())
+        .catch(error => console.log(error))
+    }
+  }
+
   renderListing() {
     let recordList = []
     this.state.items.map(item => {
@@ -28,6 +43,7 @@ class Listing extends Component {
         <tr key={item.id}>
           <td>{item.title}</td>
           <td>{item.description}</td>
+          <td><input type="button" value="X" onClick={this.deleteItem(item.id)} /></td>
         </tr>)
     })
     return recordList;
@@ -38,7 +54,9 @@ class Listing extends Component {
       <table className={'table table-striped table-hover'}>
         <thead>
         <tr>
-          <th>asd</th>
+          <th>title</th>
+          <th>description</th>
+          <th>delete</th>
         </tr>
         </thead>
         <tbody>

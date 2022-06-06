@@ -52,8 +52,8 @@ async def get_items():
     return items
 
 
-@app.delete("/api/item/{id}")
-async def delete_user(id: str):
+@app.delete("/api/items/{id}")
+async def delete_item(id: str):
     item_data = redis_db.get(id)
     if not item_data:
         return Response(status_code=404)
