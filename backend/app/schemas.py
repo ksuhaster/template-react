@@ -2,12 +2,11 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class S_UserData(BaseModel):
+class ItemAdd(BaseModel):
+    title: str
     description: str
-    public_msg: str
-    timestamp: Optional[int]
 
-
-class S_User(BaseModel):
-    name: str
-    data: S_UserData
+class ItemDB(BaseModel):
+    id: str
+    title: str
+    description: str

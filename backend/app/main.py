@@ -1,20 +1,14 @@
+import json
+
 import redis
 import uvicorn
 from typing import List
 
 from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
-from schemas import S_User, S_UserData
-
+from schemas import ItemAdd, ItemDB
 
 app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["POST", "GET", "DELETE"],
-    allow_headers=["*"],
-)
 
 redis_db = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
 
@@ -24,51 +18,34 @@ def read_root():
     return {"Hello": "World"}
 
 
-def compile_user(user_name, db_data: S_UserData) -> S_User:
-    user: S_User = S_User(name=user_name, data={**db_data})
-    return user
+def get_next_index() -> str:
+    i = 'item{}'.format(redis_db.incr('next_index'))
+    return i
 
 
-@app.post("/api/register-user", response_model=S_User)
-async def register_user(user_data: S_User):
-    redis_db.delete(user_data.name)
-    redis_db.hmset(user_data.name, user_data.data.dict())
-    db_data = redis_db.hgetall(user_data.name)
-    print(db_data, type(db_data))
-    response = compile_user(user_data.name, db_data)
-    return response
+@app.post("/api/item", response_model=ItemAdd)
+async def add_item(item_data: ItemAdd):
+    i = get_next_index()
+    redis_db.set(i, json.dumps(item_data.dict()))
+    return item_data
 
 
-@app.get("/api/load-user/{user_name}", response_model=S_User)
-async def load_user(user_name: str):
-    db_data = redis_db.hgetall(user_name)
-    if not db_data:
+@app.get("/api/items", response_model=List[ItemDB])
+async def get_items():
+    all_keys = redis_db.keys('item*')
+    items: List[ItemDB] = []
+    for i in all_keys:
+        item_data = json.loads(redis_db.get(i))
+        res = item_data.copy()
+        res['id'] = i
+        items.append(res)
+    return items
+
+
+@app.delete("/api/item/{id}")
+async def delete_user(id: str):
+    item_data = redis_db.get(id)
+    if not item_data:
         return Response(status_code=404)
-
-    response = compile_user(user_name, db_data)
-    return response
-
-
-@app.get("/api/load-all-users", response_model=List[S_User])
-async def load_all_users():
-    all_keys = redis_db.keys()
-    if not all_keys:
-        return Response(status_code=404)
-
-    users: List[S_User] = []
-    for user_name in all_keys:
-        db_user_data = redis_db.hgetall(user_name)
-        compiled_user = compile_user(user_name, db_user_data)
-        users.append(compiled_user)
-
-    return sorted(users, key=lambda user: user.data.timestamp, reverse=True)
-
-
-@app.delete("/api/reset-user/{user_name}", response_model=List[S_User])
-async def reset_user(user_name: str):
-    db_data = redis_db.hgetall(user_name)
-    if not db_data:
-        return Response(status_code=404)
-    redis_db.delete(user_name)
-
+    redis_db.delete(id)
     return Response(status_code=200)
