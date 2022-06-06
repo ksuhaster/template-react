@@ -1,43 +1,69 @@
 import './App.css';
+import Listing from './components/listing.js';
+import { useState } from "react";
 
 function App() {
+
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [items, setItems] = useState("");
+  const [message, setMessage] = useState("");
+
+  let handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      let body = JSON.stringify({
+        title: title,
+        description: description,
+      });
+      console.log('body', body);
+      let res = await fetch("http://localhost:8000/api/item", {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: body,
+      });
+      let resJson = await res.json();
+      if (res.status === 200) {
+        setTitle("");
+        setDescription("");
+        setMessage("Item added successfully");
+      } else {
+        setMessage("Some error occured");
+      }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
   return (
     <div className="col-lg-6 mx-auto p-3 py-md-5">
-      <form>
+
+      <p>Some text with bootstrap icon <i className="bi bi-person"></i></p>
+
+      <form onSubmit={handleSubmit}>
         <div className="mb-3">
-          <label htmlFor="exampleFormControlInput1" className="form-label">Email
-            address</label>
-          <input type="email" className="form-control" id="exampleFormControlInput1"
-                 placeholder="name@example.com" />
+          <label htmlFor="title" className="form-label">Title</label>
+          <input type="text" value={title} className="form-control" id="title"
+                 onChange={(e) => setTitle(e.target.value)}/>
         </div>
         <div className="mb-3">
-          <label htmlFor="exampleFormControlTextarea1" className="form-label">Example
-            textarea</label>
-          <textarea className="form-control" id="exampleFormControlTextarea1"
-                    rows="3"></textarea>
+          <label htmlFor="description" className="form-label">Description</label>
+          <textarea className="form-control" id="description"
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows="3">{description}</textarea>
         </div>
+        <div>
+          <input type="submit" className="btn btn-primary" value="Submit"/>
+        </div>
+
+        {message ? <div className="alert alert-info my-3">{message}</div> : null}
       </form>
 
-      asd <i className="bi bi-backspace-fill"></i> asd
+      <Listing />
 
-      <table className={'table table-striped table-hover'}>
-        <thead>
-          <tr>
-            <th>asd</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>asd</td>
-          </tr>
-          <tr>
-            <td>asd</td>
-          </tr>
-          <tr>
-            <td>asd</td>
-          </tr>
-        </tbody>
-      </table>
     </div>
   );
 }

@@ -13,6 +13,14 @@ app = FastAPI()
 redis_db = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
 
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["POST", "GET", "DELETE"],
+    allow_headers=["*"],
+)
+
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
@@ -23,11 +31,13 @@ def get_next_index() -> str:
     return i
 
 
-@app.post("/api/item", response_model=ItemAdd)
+@app.post("/api/item", response_model=str)
 async def add_item(item_data: ItemAdd):
     i = get_next_index()
     redis_db.set(i, json.dumps(item_data.dict()))
-    return item_data
+    res = item_data.dict().copy()
+    res['id'] = i
+    return json.dumps(res)
 
 
 @app.get("/api/items", response_model=List[ItemDB])
