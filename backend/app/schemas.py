@@ -1,12 +1,14 @@
-from typing import Optional
 from pydantic import BaseModel
 
 
-class ItemAdd(BaseModel):
+class ItemCreate(BaseModel):
     title: str
     description: str
 
 class ItemDB(BaseModel):
-    id: str
+    id: int
     title: str
     description: str
+
+    class Config:
+        orm_mode = True

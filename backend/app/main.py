@@ -1,16 +1,15 @@
-import json
-
-import redis
-import uvicorn
 from typing import List
 
-from fastapi import FastAPI, Response
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from schemas import ItemAdd, ItemDB
+from sqlalchemy.orm import Session
+
+from .database import SessionLocal, engine
+from . import crud, models, schemas
+
+models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-redis_db = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
 
 
 app.add_middleware(
@@ -21,41 +20,38 @@ app.add_middleware(
 )
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+# Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
-def get_next_index() -> str:
-    i = 'item{}'.format(redis_db.incr('next_index'))
-    return i
+@app.post("/api/items/", response_model=schemas.ItemDB)
+def create_item_for_user(item: schemas.ItemCreate, db: Session = Depends(get_db)):
+    return crud.create_item(db=db, item=item)
 
 
-@app.post("/api/item", response_model=str)
-async def add_item(item_data: ItemAdd):
-    i = get_next_index()
-    redis_db.set(i, json.dumps(item_data.dict()))
-    res = item_data.dict().copy()
-    res['id'] = i
-    return json.dumps(res)
+@app.delete("/api/items/{item_id}")
+def delete_item(item_id: int, db: Session = Depends(get_db)):
+    db_item = crud.get_item(db=db, id=item_id)
+    if db_item is None:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return crud.delete_item(db=db, item_id=item_id)
 
 
-@app.get("/api/items", response_model=List[ItemDB])
-async def get_items():
-    all_keys = redis_db.keys('item*')
-    items: List[ItemDB] = []
-    for i in all_keys:
-        item_data = json.loads(redis_db.get(i))
-        res = item_data.copy()
-        res['id'] = i
-        items.append(res)
+@app.get("/api/items/", response_model=List[schemas.ItemDB])
+def get_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    items = crud.get_items(db, skip=skip, limit=limit)
     return items
 
 
-@app.delete("/api/items/{id}")
-async def delete_item(id: str):
-    item_data = redis_db.get(id)
-    if not item_data:
-        return Response(status_code=404)
-    redis_db.delete(id)
-    return Response(status_code=200)
+### Redis command examples ###
+# redis_db = redis.Redis(host='redis', port=6379, db=0, decode_responses=True)
+# all_keys = redis_db.keys('item*')
+# redis_db.incr('next_index')
+# redis_db.set(i, json.dumps(item_data.dict()))
+# item_data = redis_db.get(id)
+# redis_db.delete(id)

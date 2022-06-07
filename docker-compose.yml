@@ -26,15 +26,15 @@ services:
       - SERVER_HOST=http://localhost
       - BACKEND_ENV=dev
       - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/backend
     build:
       context: ./backend
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/app:/app
-      - ./frontend/dist:/app/fe-dist
-    command: uvicorn --reload --host 0.0.0.0 --port 8000 --log-level info --proxy-headers --forwarded-allow-ips '*' "main:app"
+      - ./backend:/backend
+    command: uvicorn --reload --host 0.0.0.0 --port 8000 --log-level info --proxy-headers --forwarded-allow-ips '*' "app.main:app"
 
   frontend:
     image: myfrontend:0.1

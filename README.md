@@ -1,4 +1,10 @@
-Start project with fastapi, postgres and redis:
+Install npm packages:
+
+```
+docker compose run frontend npm install
+```
+
+Start project with fastapi, postgres, redis andd react:
 ```
 docker compose up -d
 ```
