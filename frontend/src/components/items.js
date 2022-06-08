@@ -12,40 +12,47 @@ class Items extends Component {
       message: "",
       items: [],
     };
+    // XXX these two doesn't work
+    this.deleteItem = this.deleteItem.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        let body = JSON.stringify({
-          title: this.state.title,
-          description: this.state.description,
+      let body = JSON.stringify({
+        title: this.state.title,
+        description: this.state.description,
+      });
+      let res = await fetch("http://localhost:8000/api/items/", {
+        method: "POST",
+        headers: {
+          'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: body,
+      });
+      let resJson = await res.json();
+      if (res.status === 200) {
+        this.setState({
+          title: "",
+          description: "",
+          message: "Item added successfully",
         });
-        let res = await fetch("http://localhost:8000/api/items/", {
-          method: "POST",
-          headers: {
-            'Accept': 'application/json',
-              'Content-Type': 'application/json'
-          },
-          body: body,
+        this.updateItems();
+        setTimeout(() => {
+          this.setState({
+            message: "",
+          });
+        }, 2500);
+      } else {
+        this.setState({
+          message: "Item added successfully",
         });
-        let resJson = await res.json();
-        if (res.status === 200) {
-          this.setState({
-            title: "",
-            description: "",
-            message: "Item added successfully",
-          });
-          this.updateItems();
-          this.render();
-        } else {
-          this.setState({
-            message: "Item added successfully",
-          });
-        }
-      } catch (err) {
-        console.log(err);
       }
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   updateItems() {
@@ -106,6 +113,7 @@ class Items extends Component {
   }
 
   render() {
+
     return <>
       <form onSubmit={this.handleSubmit}>
         <div className="mb-3">

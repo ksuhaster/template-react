@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -29,8 +29,10 @@ def get_db():
         db.close()
 
 
+### ITEMS ###
+
 @app.post("/api/items/", response_model=schemas.ItemDB)
-def create_item_for_user(item: schemas.ItemCreate, db: Session = Depends(get_db)):
+def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db)):
     return crud.create_item(db=db, item=item)
 
 
@@ -46,6 +48,38 @@ def delete_item(item_id: int, db: Session = Depends(get_db)):
 def get_items(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     items = crud.get_items(db, skip=skip, limit=limit)
     return items
+
+
+### USERS ###
+
+@app.post("/api/users/")  # TODO fix later , response_model=schemas.UserReturn
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    # TODO for now don't create duplicate, just pass
+    db_item = crud.get_user(db=db, username=user.username)
+    if db_item is None:
+        db_item = crud.create_user(db=db, user=user)
+    print('main.py return create_user', db_item.__dict__)
+    return db_item
+
+
+@app.get("/api/users/", response_model=List[schemas.UserList])
+def get_online_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    users = crud.get_online_users(db, skip=skip, limit=limit)
+    return users
+
+
+### CHATS ###
+
+@app.post("/api/chats/", response_model=schemas.ChatReturn)
+def get_or_create_chat(chat: schemas.ChatCreate, db: Session = Depends(get_db)):
+    db_item = crud.get_chat(db=db, other_id=chat.other_id, me_id=chat.me_id)
+    if db_item is None:
+        db_item = crud.create_chat(db=db, other_id=chat.other_id, me_id=chat.me_id)
+    print('main.py return get_or_create_chat', db_item.__dict__)
+    return db_item
+
+
+
 
 
 ### Redis command examples ###
